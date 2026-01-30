@@ -39,10 +39,10 @@ if ev.Kind == hook.KeyDown {
 
                 // Удаляем два пробела
                 robotgo.KeyTap("backspace")
-                robotgo.MilliSleep(25)
+                robotgo.MilliSleep(1)
 
                 robotgo.KeyTap("backspace")
-                robotgo.MilliSleep(25)
+                robotgo.MilliSleep(1)
 
                 // Вставляем ". " надёжно, независимо от раскладки
                 robotgo.TypeStr(". ")
