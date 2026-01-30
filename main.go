@@ -24,46 +24,46 @@ func main() {
 		fmt.Println("Выход...")
 		hook.End()
 	})
-
 	for ev := range evChan {
-		if ev.Kind == hook.KeyDown {
-			// Пробел на Windows → Rawcode 32
-			if ev.Rawcode == 32 {
-				fmt.Printf("Пробел пойман | Rawcode=%d  Keycode=%d  When=%v\n",
-					ev.Rawcode, ev.Keycode, ev.When)
+		// Внутри цикла for ev := range evChan {
 
-				now := ev.When
+if ev.Kind == hook.KeyDown {
+    if ev.Rawcode == 32 {  // пробел
+        now := ev.When
 
-				if wasPreviousSpace && now.Sub(lastSpaceTime) < 500*time.Millisecond {
-					// fmt.Println("→ УСЛОВИЕ СРАБОТАЛО: два быстрых пробела")
+        // Проверяем, не слишком ли быстро после предыдущего KeyDown (удержание/автоповтор)
+        if wasPreviousSpace && now.Sub(lastSpaceTime) < 500*time.Millisecond {
+            // Дополнительно: если интервал очень маленький — вероятно удержание, пропускаем
+            if now.Sub(lastSpaceTime) > 60*time.Millisecond {  // ← настройка по предпочтениям (50–100 мс)
+                fmt.Println("→ ДВОЙНОЙ ТАП: вставляем . ")
 
-					// Замена: удаляем два пробела, вставляем . + space
-					robotgo.KeyTap("backspace")
-					robotgo.MilliSleep(20)
+                // Удаляем два пробела
+                robotgo.KeyTap("backspace")
+                robotgo.MilliSleep(25)
 
-					robotgo.KeyTap("backspace")
-					robotgo.MilliSleep(20)
+                robotgo.KeyTap("backspace")
+                robotgo.MilliSleep(25)
 
-					robotgo.KeyTap(".")
-					robotgo.MilliSleep(20)
+                // Вставляем ". " надёжно, независимо от раскладки
+                robotgo.TypeStr(". ")
 
-					robotgo.KeyTap("space")
+                wasPreviousSpace = false
+                lastSpaceTime = time.Time{}
+            } else {
+                // Слишком быстро → вероятно удержание, просто обновляем время
+                lastSpaceTime = now
+            }
+        } else {
+            wasPreviousSpace = true
+            lastSpaceTime = now
+        }
+    } else {
+        // Другая клавиша → сброс
+        wasPreviousSpace = false
+    }
+}
 
-					fmt.Println("→ Вставлена точка + пробел (если не видно — проверьте права или фокус)")
-
-					wasPreviousSpace = false
-					lastSpaceTime = time.Time{} // Обнуляем время
-				} else {
-					wasPreviousSpace = true
-					lastSpaceTime = now
-				}
-
-				// Нe сбрасываем флаг здесь — continue не нужен, т.к. ниже else сбросит только для не-пробелов
-			} else {
-				// Сброс для любой другой KeyDown (не пробел)
-				wasPreviousSpace = false
-			}
-		}
+// Для сброса только KeyDown других клавиш
 
 	}
 }
